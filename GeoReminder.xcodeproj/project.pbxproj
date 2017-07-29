@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1189D9B60CB4F94C26DC34EE /* Pods_GeoReminder.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A480EB9A06DE9BB6F1443557 /* Pods_GeoReminder.framework */; };
+		673D24751F2D46BB006F53A9 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 673D24741F2D46BB006F53A9 /* GoogleService-Info.plist */; };
 		6797ABE81F2D363800B29317 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797ABE71F2D363800B29317 /* AppDelegate.swift */; };
 		6797ABEA1F2D363800B29317 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6797ABE91F2D363800B29317 /* ViewController.swift */; };
 		6797ABED1F2D363800B29317 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6797ABEB1F2D363800B29317 /* Main.storyboard */; };
@@ -19,6 +20,7 @@
 /* Begin PBXFileReference section */
 		0EB3F111DC94CC30A7D64DFA /* Pods-GeoReminder.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GeoReminder.release.xcconfig"; path = "Pods/Target Support Files/Pods-GeoReminder/Pods-GeoReminder.release.xcconfig"; sourceTree = "<group>"; };
 		4F38EC9F307E5404D1555F02 /* Pods-GeoReminder.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GeoReminder.debug.xcconfig"; path = "Pods/Target Support Files/Pods-GeoReminder/Pods-GeoReminder.debug.xcconfig"; sourceTree = "<group>"; };
+		673D24741F2D46BB006F53A9 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		6797ABE41F2D363800B29317 /* GeoReminder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GeoReminder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6797ABE71F2D363800B29317 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		6797ABE91F2D363800B29317 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -53,6 +55,14 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		673D24761F2D46BE006F53A9 /* Firebase */ = {
+			isa = PBXGroup;
+			children = (
+				673D24741F2D46BB006F53A9 /* GoogleService-Info.plist */,
+			);
+			name = Firebase;
+			sourceTree = "<group>";
+		};
 		6797ABDB1F2D363800B29317 = {
 			isa = PBXGroup;
 			children = (
@@ -74,6 +84,7 @@
 		6797ABE61F2D363800B29317 /* GeoReminder */ = {
 			isa = PBXGroup;
 			children = (
+				673D24761F2D46BE006F53A9 /* Firebase */,
 				6797ABE71F2D363800B29317 /* AppDelegate.swift */,
 				6797ABE91F2D363800B29317 /* ViewController.swift */,
 				6797ABEB1F2D363800B29317 /* Main.storyboard */,
@@ -168,6 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				6797ABF21F2D363800B29317 /* LaunchScreen.storyboard in Resources */,
+				673D24751F2D46BB006F53A9 /* GoogleService-Info.plist in Resources */,
 				6797ABEF1F2D363800B29317 /* Assets.xcassets in Resources */,
 				6797ABED1F2D363800B29317 /* Main.storyboard in Resources */,
 			);
@@ -361,7 +373,7 @@
 				INFOPLIST_FILE = GeoReminder/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = shah.GeoReminder;
+				PRODUCT_BUNDLE_IDENTIFIER = DaliLabs.Inc.GeoPin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "GeoReminder/GeoReminder-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -379,7 +391,7 @@
 				INFOPLIST_FILE = GeoReminder/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = shah.GeoReminder;
+				PRODUCT_BUNDLE_IDENTIFIER = DaliLabs.Inc.GeoPin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "GeoReminder/GeoReminder-Bridging-Header.h";
 				SWIFT_VERSION = 3.0;
