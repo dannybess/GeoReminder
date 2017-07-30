@@ -28,17 +28,24 @@
     return self;
 }
 
-- (void) satoriInit {
-    unsigned int reqId;
-    rtm_status status = [[self rtm] connectWithPduHandler:^(SatoriPdu * _Nonnull pdu) {
-        //Use pdu
-        
-    }];
-    [[self rtm] subscribe:@"geopins" andRequestId:&reqId];
+- (void) satoriInit:(void(^)(SatoriPdu *))handler; {
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul);
+    dispatch_async(queue, ^{
+        // Perform async operation
+        unsigned int reqId = 123;
+        receiveCompletionHandler = [handler copy];
+        rtm_status status = [[self rtm] connectWithPduHandler:receiveCompletionHandler];
+        [[self rtm] subscribe:@"geopins" andRequestId:&reqId];
+        while ([[self rtm] poll] >= 0) {
+            sleep(1);
+        }
+    });
+    
+     
 }
 
 - (void) publishLocation: (NSDictionary *)location {
-    unsigned int reqId;
+    unsigned int reqId = 124;
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject:location
                                                        options:0 // Pass 0 if you don't care about the readability of the generated string

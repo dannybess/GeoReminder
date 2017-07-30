@@ -10,11 +10,13 @@
 #import <UIKit/UIKit.h>
 #import <SatoriRtmSdkWrapper/SatoriRtmSdkWrapper.h>
 
-@interface SatoriWrapper : NSObject
+@interface SatoriWrapper : NSObject {
+    void (^receiveCompletionHandler)(SatoriPdu* pdu);
+}
 @property (nonatomic, retain) NSArray *geopins;
 @property (nonatomic, retain) SatoriRtmConnection *rtm;
 
-- (void)satoriInit;
+- (void)satoriInit:(void(^)(SatoriPdu *))handler;
 - (void) publishLocation: (NSDictionary *)location;
 + (SatoriWrapper *)shared;
 
