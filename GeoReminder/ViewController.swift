@@ -80,6 +80,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     //klc popup
     var popup : KLCPopup!
 
+    var usedValues : [String] = []
 
     //user
     var userID: String = "jdinlkj392djf"
@@ -116,6 +117,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
         self.ref = Database.database().reference()
         infoLabel.font = UIFont.systemFont(ofSize: 10)
         infoLabel.textAlignment = .left
@@ -411,13 +413,16 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                             self.geoFenceTimer = nil
                         }
                         let id = ((annotation as! MyAnnotation).id)
-                        let alertController = UIAlertController(title: "Don't forget Your Item!", message: "Your geo-pin, \(id!), is still on the map!", preferredStyle: .alert)
-                        let action = UIAlertAction(title: "OK", style: .default, handler: {
-                            action in
-                            self.geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
-                        })
-                        alertController.addAction(action)
-                        self.present(alertController, animated: true, completion: nil)
+                        if(!(usedValues.contains(id!))) {
+                            let alertController = UIAlertController(title: "Don't forget Your Item!", message: "Your geo-pin, \(id!), is still on the map!", preferredStyle: .alert)
+                            let action = UIAlertAction(title: "OK", style: .default, handler: {
+                                action in
+                                self.geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
+                            })
+                            alertController.addAction(action)
+                            self.present(alertController, animated: true, completion: nil)
+                            usedValues.append(id!)
+                        }
                     }
                 }
             }

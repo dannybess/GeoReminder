@@ -9,12 +9,14 @@
 import UIKit
 import CoreLocation
 import MapKit
+import KLCPopup
 
 
 class NavigateViewController: UIViewController, MKMapViewDelegate, CLLocationManagerDelegate {
     @IBOutlet weak var mapView: MKMapView!
     var itemAnnotation: MyAnnotation!
     let locationManager = CLLocationManager()
+    var mapCamera: MKMapCamera!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,13 +33,14 @@ class NavigateViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         self.mapView.showsUserLocation = true
         self.mapView.setUserTrackingMode(MKUserTrackingMode.follow, animated: true)
 
-        let mapCamera = MKMapCamera()
-        mapCamera.centerCoordinate = self.mapView.userLocation.coordinate
-        mapCamera.pitch = 45
-        mapCamera.altitude = 1
+        self.mapCamera = MKMapCamera()
+        mapCamera.centerCoordinate = self.mapView.centerCoordinate
+        mapCamera.pitch = 15
+        mapCamera.altitude = 15
         mapCamera.heading = 45
-        self.mapView.camera = mapCamera
-
+        self.mapView.setCamera(self.mapCamera, animated: false)
+        self.mapView.isRotateEnabled = true
+        mapView.showsBuildings = true
         let request = MKDirectionsRequest()
         request.destination = MKMapItem(placemark: MKPlacemark(coordinate: self.itemAnnotation.coordinate))
         request.source = MKMapItem(placemark: MKPlacemark(coordinate: self.mapView.userLocation.coordinate))
@@ -54,6 +57,11 @@ class NavigateViewController: UIViewController, MKMapViewDelegate, CLLocationMan
                 self.mapView.setVisibleMapRect(route.polyline.boundingMapRect, animated: true)
             }
         }
+        self.mapView.showsUserLocation = true
+        self.mapView.addAnnotation(itemAnnotation)
+        self.mapView.mapType = MKMapType.hybridFlyover
+
+        KLCPopup.dismissAllPopups()
     }
 
     func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
@@ -66,7 +74,21 @@ class NavigateViewController: UIViewController, MKMapViewDelegate, CLLocationMan
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print(error.localizedDescription)
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateHeading newHeading: CLHeading) {
+        self.mapCamera = MKMapCamera()
+        self.mapCamera.heading = (newHeading.trueHeading + 90.0).truncatingRemainder(dividingBy: 360)
+        self.mapCamera.altitude = 15
+        self.mapView.setCamera(self.mapCamera, animated: true)
+    }
 
     /*
     // MARK: - Navigation
