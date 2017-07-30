@@ -11,18 +11,11 @@ import UIKit
 
 
 class BountyView: UIViewController {
-
-
-
+    
     var id: String!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        
-
-
-
         // Do any additional setup after loading the view.
     }
 
