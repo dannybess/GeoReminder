@@ -10,17 +10,20 @@ import UIKit
 
 
 
-class BountyView: UIViewController {
+class BountyView: UIViewController, UITextFieldDelegate {
 
 
 
     var id: String!
+    var loc: MyAnnotation!
+    @IBOutlet weak var nameField: UITextField!
+    @IBOutlet weak var phoneField: UITextField!
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
         
-
+        
+        phoneField.keyboardType = UIKeyboardType.numberPad
 
 
         // Do any additional setup after loading the view.
@@ -33,6 +36,13 @@ class BountyView: UIViewController {
     
     @IBAction func confirmClicked(_ sender: Any) {
         
+        SatoriWrapper.shared().publishLocation(["latitude": self.loc.coordinate.latitude, "longitude": self.loc.coordinate.longitude, "name": nameField.text!, "phone": phoneField.text!])
+    }
+
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let prospectiveText = (textField.text! as NSString).replacingCharacters(in: range, with: string)
+        return string.characters.count == 0 || CharacterSet.decimalDigits.isSuperset(of: CharacterSet(charactersIn: prospectiveText))
+
     }
 
     /*

@@ -33,6 +33,13 @@ extension UIView {
         parentViewController!.segueToBounty()
         print("hereboi")
     }
+
+    @IBAction func deletePressed(_ sender: Any) {
+        parentViewController?.deletePin()
+        KLCPopup.dismissAllPopups()
+    }
+
+
     class func instanceFromNib() -> UIView {
         return UINib(nibName: "MultSelectView", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! UIView
     }
@@ -65,6 +72,8 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     //map
     var regPins = [MapPoint]()
     var bountyPins = [CLLocation]()
+    var currLoc: MyAnnotation!
+    var selectedID: String!
 
     //klc popup
     var popup : KLCPopup!
@@ -109,7 +118,9 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         infoLabel.textColor = UIColor.white
         infoLabel.numberOfLines = 0
         sceneLocationView.addSubview(infoLabel)
-        
+
+        self.mapView.showsUserLocation = true
+
         // updateInfoLabelTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(ViewController.updateInfoLabel), userInfo: nil, repeats: true)
         
         //Set to true to display an arrow which points north.
@@ -131,15 +142,10 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         if showMapView {
             mapView.delegate = self
             mapView.showsUserLocation = true
-            mapView.alpha = 0.8
+            mapView.alpha = 1.0
             view.addSubview(mapView)
             
-            updateUserLocationTimer = Timer.scheduledTimer(
-                timeInterval: 0.4,
-                target: self,
-                selector: #selector(ViewController.updateUserLocation),
-                userInfo: nil,
-                repeats: true)
+            updateUserLocationTimer = Timer.scheduledTimer( timeInterval: 0.4,target: self,selector: #selector(ViewController.updateUserLocation),userInfo: nil,repeats: true)
         }
         
         self.getMyPins()
@@ -157,6 +163,15 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 }
             }
         }
+        self.mapView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(ViewController.addAnn(_:))))
+    }
+
+    func addAnn(_ gestureRecognizer: UIGestureRecognizer) {
+        let touchPoint = gestureRecognizer.location(in: self.mapView)
+        let newCoordinates = self.mapView.convert(touchPoint, toCoordinateFrom: self.mapView)
+        let annotation = MyAnnotation(loc: CLLocation(coordinate: newCoordinates, altitude: 0.0), pinID: self.ref.childByAutoId().key)
+        self.setPinToLocation(location: CLLocation(coordinate: annotation.coordinate, altitude: 0.0), itemName: "Pin_\(annotation.id)", id: annotation.id)
+        self.mapView.addAnnotation(annotation)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -165,9 +180,27 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         sceneLocationView.run()
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.mapView.setUserTrackingMode(MKUserTrackingMode.follow, animated: true)
+    }
+
     func segueToBounty(){
         self.performSegue(withIdentifier: "bounty", sender: self)
     }
+
+    func deletePin(){
+        self.mapView.removeAnnotation(self.currLoc)
+        ref.child("Users/\(userID)/GeoLocations/\(selectedID)").removeValue()
+    }
+
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let dest = segue.destination as? BountyView {
+            dest.loc = self.currLoc
+            KLCPopup.dismissAllPopups()
+        }
+    }
+
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -184,7 +217,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             x: 0,
             y: 0,
             width: self.view.frame.size.width,
-            height: self.view.frame.size.height)
+            height: self.view.frame.size.height / 2)
         
         infoLabel.frame = CGRect(x: 6, y: 0, width: self.view.frame.size.width - 12, height: 14 * 4)
         
@@ -196,7 +229,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         
         mapView.frame = CGRect(
             x: 0,
-            y: self.view.frame.size.height / 2,
+            y:  self.view.frame.size.height / 2,
             width: self.view.frame.size.width,
             height: self.view.frame.size.height / 2)
     }
@@ -308,10 +341,11 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
                         let ann = MKPointAnnotation()
                         ann.coordinate = annotationNode.location.coordinate
+                        let key = ref.childByAutoId().key
                         let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(5.0, annotationNode.location.altitude))
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
-                        self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)")
+                        self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)", id: key)
                     }
                 }
             }
@@ -321,13 +355,15 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     //MARK: MKMapViewDelegate
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         print(view.annotation)
-        var ann = view.annotation as! MyAnnotation
-        print(ann.id)
+        if let ann = view.annotation as? MyAnnotation {
+            self.currLoc = ann
+            self.selectedID = ann.id
 
-        let view: MultSelectView = MultSelectView.instanceFromNib() as! MultSelectView
-        view.parentViewController = self
-        popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
-        popup.show()
+            let view: MultSelectView = MultSelectView.instanceFromNib() as! MultSelectView
+            view.parentViewController = self
+            popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
+            popup.show()
+        }
     }
 
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
