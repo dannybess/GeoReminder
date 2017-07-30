@@ -21,11 +21,6 @@ class BountyView: UIViewController, UITextFieldDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        
-        phoneField.keyboardType = UIKeyboardType.numberPad
-
-
         // Do any additional setup after loading the view.
     }
 
