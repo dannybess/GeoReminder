@@ -11,13 +11,64 @@ import Firebase
 import FirebaseDatabase
 import CoreLocation
 import MapKit
-import SceneKit 
+import SceneKit
+import KLCPopup
+
+extension UIView {
+    class func loadFromNibNamed(nibNamed: String, bundle : Bundle? = nil) -> UIView? {
+        return UINib(
+            nibName: nibNamed,
+            bundle: bundle
+            ).instantiate(withOwner: nil, options: nil)[0] as? UIView
+    }
+}
+
+@IBDesignable class MultSelectView : UIView
+{
+    var parentViewController: ViewController?
+    @IBAction func segueToDirections(_ sender: Any) {
+    }
+    @IBAction func BountyScreen(_ sender: Any) {
+        parentViewController!.segueToBounty()
+        print("hereboi")
+    }
+    class func instanceFromNib() -> UIView {
+        return UINib(nibName: "MultSelectView", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! UIView
+    }
+
+}
+
+class MapPoint {
+    var location: CLLocation!
+    var id: String!
+
+    init (loc: CLLocation, pinID: String){
+        location = loc
+        id = pinID
+    }
+}
+
+class MyAnnotation: NSObject, MKAnnotation{
+    var coordinate: CLLocationCoordinate2D
+    var id: String!
+
+    init (loc: CLLocation, pinID: String){
+        id = pinID
+        coordinate = loc.coordinate
+
+        super.init()
+    }
+}
 
 class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDelegate {
     //map
-    var regPins = [CLLocation]()
+    var regPins = [MapPoint]()
     var bountyPins = [CLLocation]()
-    
+
+    //klc popup
+    var popup : KLCPopup!
+
+
     //user
     var userID: String = "jdinlkj392djf"
     
@@ -94,12 +145,17 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         }
         
         self.getMyPins()
+       
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         //DDLogDebug("run")
         sceneLocationView.run()
+    }
+
+    func segueToBounty(){
+        self.performSegue(withIdentifier: "bounty", sender: self)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -241,12 +297,13 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         let annotationNode = LocationAnnotationNode(location: nil, image: image)
                         annotationNode.scaleRelativeToDistance = true
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
-                        let ann = MKPointAnnotation()
-                        ann.coordinate = annotationNode.location.coordinate
-                        
+
+                        let key = ref.childByAutoId().key
+                        let ann = MyAnnotation(loc: annotationNode.location, pinID: key)
+
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
-                        self.setPinToLocation(location: annotationNode.location, itemName: "Pin_\(randN)")
+                        self.setPinToLocation(location: annotationNode.location, itemName: "Pin_\(randN)", id: key)
                     }
                 }
             }
@@ -254,7 +311,17 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     }
     
     //MARK: MKMapViewDelegate
-    
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        print(view.annotation)
+        var ann = view.annotation as! MyAnnotation
+        print(ann.id)
+
+        let view: MultSelectView = MultSelectView.instanceFromNib() as! MultSelectView
+        view.parentViewController = self
+        popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
+        popup.show()
+    }
+
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         if annotation is MKUserLocation {
             return nil
@@ -302,33 +369,34 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     func getMyPins(){
         ref.child("Users").child(userID).child("GeoLocations").observeSingleEvent(of: .value, with: { (snapshot) in
             // Get user value
-            self.regPins = []
+            self.regPins  = []
             self.regPins = snapshot.children.map{ childObj in
                 let child = childObj as! DataSnapshot
                 let latitude = child.childSnapshot(forPath: "latitude").value as! Double
                 let longitude = child.childSnapshot(forPath: "longitude").value as! Double
                 let altitude = child.childSnapshot(forPath: "altitude").value as! Double
+                let uid = child.childSnapshot(forPath: "id").value as! String
 
                 let type = child.childSnapshot(forPath: "type").value as! String
                 
                 if(type == "Regular"){
-                    return CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+
+                    var location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    return MapPoint(loc: location, pinID: uid)
                 }
                 else{
-                    return CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    var location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    return MapPoint(loc: location, pinID: uid)
                 }
                 
             }
             print("REG PINS")
             print(self.regPins)
             for rpin in self.regPins {
-                let ann = MKPointAnnotation()
-                //ann.coordinate = annotationNode.location.coordinate
-                //self.mapView.addAnnotation(ann)
-                ann.coordinate = rpin.coordinate
+                let ann = MyAnnotation(loc: rpin.location, pinID: rpin.id)
                 self.mapView.addAnnotation(ann)
                 let image = UIImage(named: "pin")!
-                let annotationNode = LocationAnnotationNode(location: rpin, image: image)
+                let annotationNode = LocationAnnotationNode(location: rpin.location, image: image)
                 annotationNode.scaleRelativeToDistance = true
                 DispatchQueue.main.async {
                     print("SCENE ADD")
@@ -342,18 +410,19 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         }
     }
     
-    func setPinToLocation(location: CLLocation, itemName: String){
+    func setPinToLocation(location: CLLocation, itemName: String, id: String){
         let latitude = location.coordinate.latitude
         let longitude = location.coordinate.longitude
         let altitude = location.altitude
         
         let type = "Regular"
-        let uid = ref.childByAutoId().key
+        let uid = id
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("latitude").setValue(latitude)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("longitude").setValue(longitude)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("altitude").setValue(altitude)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("type").setValue(type)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("itemName").setValue(itemName)
+        ref.child("Users").child(userID).child("GeoLocations").child(uid).child("id").setValue(uid)
         //ref.child("Users").child(userID).child("GeoLocations").child(uid).child("itemDescription").setValue(type)
         
     }
