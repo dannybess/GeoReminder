@@ -70,7 +70,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         //        sceneLocationView.orientToTrueNorth = false
         
         //        sceneLocationView.locationEstimateMethod = .coreLocationDataOnly
-        sceneLocationView.showAxesNode = true
+        sceneLocationView.showAxesNode = false
         sceneLocationView.locationDelegate = self
         
         if displayDebugging {
@@ -93,6 +93,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 repeats: true)
         }
         
+        self.getMyPins()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -242,7 +243,10 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
                         let ann = MKPointAnnotation()
                         ann.coordinate = annotationNode.location.coordinate
+                        
                         self.mapView.addAnnotation(ann)
+                        let randN = arc4random_uniform(101)
+                        self.setPinToLocation(location: annotationNode.location, itemName: "Pin_\(randN)")
                     }
                 }
             }
@@ -296,7 +300,6 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     }
     
     func getMyPins(){
-        
         ref.child("Users").child(userID).child("GeoLocations").observeSingleEvent(of: .value, with: { (snapshot) in
             // Get user value
             self.regPins = []
@@ -304,17 +307,34 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 let child = childObj as! DataSnapshot
                 let latitude = child.childSnapshot(forPath: "latitude").value as! Double
                 let longitude = child.childSnapshot(forPath: "longitude").value as! Double
+                let altitude = child.childSnapshot(forPath: "altitude").value as! Double
+
                 let type = child.childSnapshot(forPath: "type").value as! String
                 
                 if(type == "Regular"){
-                    return CLLocation(latitude: latitude, longitude: longitude)
+                    return CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
                 }
                 else{
-                    return CLLocation(latitude: latitude, longitude: longitude)
+                    return CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
                 }
                 
             }
+            print("REG PINS")
             print(self.regPins)
+            for rpin in self.regPins {
+                let ann = MKPointAnnotation()
+                //ann.coordinate = annotationNode.location.coordinate
+                //self.mapView.addAnnotation(ann)
+                ann.coordinate = rpin.coordinate
+                self.mapView.addAnnotation(ann)
+                let image = UIImage(named: "pin")!
+                let annotationNode = LocationAnnotationNode(location: rpin, image: image)
+                annotationNode.scaleRelativeToDistance = true
+                DispatchQueue.main.async {
+                    print("SCENE ADD")
+                    self.sceneLocationView.addLocationNodeWithConfirmedLocation(locationNode: annotationNode)
+                }
+            }
             
             
         }) { (error) in
@@ -323,13 +343,15 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     }
     
     func setPinToLocation(location: CLLocation, itemName: String){
-        var latitude = location.coordinate.latitude
-        var longitude = location.coordinate.longitude
+        let latitude = location.coordinate.latitude
+        let longitude = location.coordinate.longitude
+        let altitude = location.altitude
         
-        var type = "Regular"
-        var uid = ref.childByAutoId().key
+        let type = "Regular"
+        let uid = ref.childByAutoId().key
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("latitude").setValue(latitude)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("longitude").setValue(longitude)
+        ref.child("Users").child(userID).child("GeoLocations").child(uid).child("altitude").setValue(altitude)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("type").setValue(type)
         ref.child("Users").child(userID).child("GeoLocations").child(uid).child("itemName").setValue(itemName)
         //ref.child("Users").child(userID).child("GeoLocations").child(uid).child("itemDescription").setValue(type)
