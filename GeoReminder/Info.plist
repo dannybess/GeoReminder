@@ -45,5 +45,16 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+    <key>UIApplicationShortcutItems</key>
+    <array>
+        <dict>
+            <key>UIApplicationShortcutItemIconType</key>
+            <string>UIApplicationShortcutIconTypeLocation</string>
+            <key>UIApplicationShortcutItemTitle</key>
+            <string>Quick Add</string>
+            <key>UIApplicationShortcutItemType</key>
+            <string>geopin.quickadd</string>
+        </dict>
+    </array>
 </dict>
 </plist>

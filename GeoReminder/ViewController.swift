@@ -13,6 +13,7 @@ import CoreLocation
 import MapKit
 import SceneKit
 import KLCPopup
+import SceneKit 
 
 extension UIView {
     class func loadFromNibNamed(nibNamed: String, bundle : Bundle? = nil) -> UIView? {
@@ -109,20 +110,17 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         infoLabel.numberOfLines = 0
         sceneLocationView.addSubview(infoLabel)
         
-        updateInfoLabelTimer = Timer.scheduledTimer(
-            timeInterval: 0.1,
-            target: self,
-            selector: #selector(ViewController.updateInfoLabel),
-            userInfo: nil,
-            repeats: true)
+        // updateInfoLabelTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(ViewController.updateInfoLabel), userInfo: nil, repeats: true)
         
         //Set to true to display an arrow which points north.
         //Checkout the comments in the property description and on the readme on this.
         //        sceneLocationView.orientToTrueNorth = false
         
         //        sceneLocationView.locationEstimateMethod = .coreLocationDataOnly
-        sceneLocationView.showAxesNode = false
+        sceneLocationView.showAxesNode = true
         sceneLocationView.locationDelegate = self
+        sceneLocationView.locationEstimateMethod = .mostRelevantEstimate
+        sceneLocationView.orientToTrueNorth = true
         
         if displayDebugging {
             sceneLocationView.showFeaturePoints = true
@@ -137,7 +135,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             view.addSubview(mapView)
             
             updateUserLocationTimer = Timer.scheduledTimer(
-                timeInterval: 0.5,
+                timeInterval: 0.4,
                 target: self,
                 selector: #selector(ViewController.updateUserLocation),
                 userInfo: nil,
@@ -145,7 +143,20 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         }
         
         self.getMyPins()
-       
+        SatoriWrapper.shared().satoriInit { (pdu) in
+            if let msg = pdu {
+                if let boody = msg.body["messages"] as? [Any], let bdy = boody[0] as? [AnyHashable: AnyObject] {
+                    if let lat = bdy["latitude"] as? Double {
+                        if let long = bdy["longitude"] as? Double {
+                            let annotation = BountyAnnotation()
+                            annotation.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+                            self.mapView.addAnnotation(annotation)
+                            print("RECEIVED SATORI")
+                        }
+                    }
+                }
+            }
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -206,7 +217,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                     //DDLogDebug("best location estimate, position: \(bestEstimate.position), location: \(bestEstimate.location.coordinate), accuracy: \(bestEstimate.location.horizontalAccuracy), date: \(bestEstimate.location.timestamp)")
                     //DDLogDebug("current position: \(position)")
                     
-                    let translation = bestEstimate.translatedLocation(to: position)
+                    _ = bestEstimate.translatedLocation(to: position)
                     
                     //DDLogDebug("translation: \(translation)")
                     //DDLogDebug("translated location: \(currentLocation)")
@@ -218,10 +229,8 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                     //self.mapView.addAnnotation(self.userAnnotation!)
                 }
                 
-                UIView.animate(withDuration: 0.5, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: {
-                    self.userAnnotation?.coordinate = currentLocation.coordinate
-                }, completion: nil)
-                
+                self.userAnnotation?.coordinate = currentLocation.coordinate
+
                 if self.centerMapOnUserLocation {
                     UIView.animate(withDuration: 0.45, delay: 0, options: UIViewAnimationOptions.allowUserInteraction, animations: {
                         self.mapView.setCenter(self.userAnnotation!.coordinate, animated: false)
@@ -297,13 +306,12 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         let annotationNode = LocationAnnotationNode(location: nil, image: image)
                         annotationNode.scaleRelativeToDistance = true
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
-
-                        let key = ref.childByAutoId().key
-                        let ann = MyAnnotation(loc: annotationNode.location, pinID: key)
-
+                        let ann = MKPointAnnotation()
+                        ann.coordinate = annotationNode.location.coordinate
+                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(5.0, annotationNode.location.altitude))
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
-                        self.setPinToLocation(location: annotationNode.location, itemName: "Pin_\(randN)", id: key)
+                        self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)")
                     }
                 }
             }
@@ -333,10 +341,15 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             if pointAnnotation == self.userAnnotation {
                 marker.displayPriority = .required
                 marker.glyphImage = UIImage(named: "user")
+                marker.markerTintColor = UIColor.black
             } else {
                 marker.displayPriority = .required
                 //marker.markerTintColor = UIColor(hue: 0.267, saturation: 0.67, brightness: 0.77, alpha: 1.0)
                 //marker.glyphImage = UIImage(named: "pin")
+            }
+            
+            if pointAnnotation is BountyAnnotation {
+                marker.markerTintColor = UIColor.blue
             }
             
             return marker
@@ -390,8 +403,6 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 }
                 
             }
-            print("REG PINS")
-            print(self.regPins)
             for rpin in self.regPins {
                 let ann = MyAnnotation(loc: rpin.location, pinID: rpin.id)
                 self.mapView.addAnnotation(ann)
@@ -399,7 +410,6 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 let annotationNode = LocationAnnotationNode(location: rpin.location, image: image)
                 annotationNode.scaleRelativeToDistance = true
                 DispatchQueue.main.async {
-                    print("SCENE ADD")
                     self.sceneLocationView.addLocationNodeWithConfirmedLocation(locationNode: annotationNode)
                 }
             }
@@ -445,6 +455,9 @@ extension UIView {
         
         return recursiveSubviews
     }
+}
+
+class BountyAnnotation: MKPointAnnotation {
 }
 
 
