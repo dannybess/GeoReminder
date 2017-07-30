@@ -30,6 +30,7 @@
 		9D0712EE1F2DD1FA00E80759 /* BountyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0712ED1F2DD1FA00E80759 /* BountyView.swift */; };
 		9D0712F41F2DD40000E80759 /* MultSelectView.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9D0712F31F2DD40000E80759 /* MultSelectView.xib */; };
 		9D0712F61F2DFBC100E80759 /* NavVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0712F51F2DFBC100E80759 /* NavVC.swift */; };
+		9D0712F81F2E391C00E80759 /* NavigateViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D0712F71F2E391C00E80759 /* NavigateViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -74,6 +75,7 @@
 		9D0712ED1F2DD1FA00E80759 /* BountyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BountyView.swift; sourceTree = "<group>"; };
 		9D0712F31F2DD40000E80759 /* MultSelectView.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MultSelectView.xib; sourceTree = "<group>"; };
 		9D0712F51F2DFBC100E80759 /* NavVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavVC.swift; sourceTree = "<group>"; };
+		9D0712F71F2E391C00E80759 /* NavigateViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigateViewController.swift; sourceTree = "<group>"; };
 		A480EB9A06DE9BB6F1443557 /* Pods_GeoReminder.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GeoReminder.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -150,6 +152,7 @@
 				6797ABE71F2D363800B29317 /* AppDelegate.swift */,
 				9D0712F51F2DFBC100E80759 /* NavVC.swift */,
 				6797ABE91F2D363800B29317 /* ViewController.swift */,
+				9D0712F71F2E391C00E80759 /* NavigateViewController.swift */,
 				9D0712ED1F2DD1FA00E80759 /* BountyView.swift */,
 				9D0712F31F2DD40000E80759 /* MultSelectView.xib */,
 				6797ABEB1F2D363800B29317 /* Main.storyboard */,
@@ -313,6 +316,7 @@
 				673D248E1F2D93C7006F53A9 /* SceneLocationView.swift in Sources */,
 				6797ABEA1F2D363800B29317 /* ViewController.swift in Sources */,
 				673D24901F2D93C7006F53A9 /* SCNVector3+Extensions.swift in Sources */,
+				9D0712F81F2E391C00E80759 /* NavigateViewController.swift in Sources */,
 				673D248D1F2D93C7006F53A9 /* SceneLocationEstimate.swift in Sources */,
 				9D0712F61F2DFBC100E80759 /* NavVC.swift in Sources */,
 				673D24881F2D93C7006F53A9 /* CLLocation+Extensions.swift in Sources */,

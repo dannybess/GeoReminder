@@ -33,6 +33,7 @@ class BountyView: UIViewController, UITextFieldDelegate {
     @IBAction func confirmClicked(_ sender: Any) {
         
         SatoriWrapper.shared().publishLocation(["latitude": self.loc.coordinate.latitude, "longitude": self.loc.coordinate.longitude, "name": nameField.text!, "phone": phoneField.text!])
+        self.navigationController?.popViewController(animated: true)
     }
 
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {

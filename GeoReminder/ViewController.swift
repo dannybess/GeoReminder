@@ -175,6 +175,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         let annotation = MyAnnotation(loc: CLLocation(coordinate: newCoordinates, altitude: 0.0), pinID: self.ref.childByAutoId().key)
         self.setPinToLocation(location: CLLocation(coordinate: annotation.coordinate, altitude: 0.0), itemName: "Pin_\(annotation.id)", id: annotation.id)
         self.mapView.addAnnotation(annotation)
+        self.sceneLocationView.addLocationNodeWithConfirmedLocation(locationNode: LocationNode(location: CLLocation(coordinate: annotation.coordinate, altitude: 0.0)))
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -202,6 +203,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             dest.loc = self.currLoc
             KLCPopup.dismissAllPopups()
         }
+        
     }
 
     
@@ -344,7 +346,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
                         let key = ref.childByAutoId().key
                         let ann = MyAnnotation(loc: CLLocation(coordinate: annotationNode.location.coordinate, altitude: 0.0), pinID: key)
-                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(10.0, annotationNode.location.altitude))
+                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: annotationNode.location.altitude)
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
                         self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)", id: key)
@@ -400,7 +402,8 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         for annotation in self.mapView.annotations {
             if(!(annotation is MKUserLocation)) {
                 if let ann = annotation as? MyAnnotation {
-                    if(userDistance(from: (ann))! > 15.0) {
+                    print(userDistance(from: (ann))!)
+                    if(userDistance(from: (ann))! > 3.0) {
                         if(geoFenceTimer != nil) {
                             self.geoFenceTimer.invalidate()
                             self.geoFenceTimer = nil
@@ -411,6 +414,8 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                             action in
                             self.geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
                         })
+                        alertController.addAction(action)
+                        self.present(alertController, animated: true, completion: nil)
                     }
                 }
             }
@@ -528,6 +533,14 @@ extension UIView {
 }
 
 class BountyAnnotation: MKPointAnnotation {
+    var nameOfObj : String
+    var phoneNumber : String
+
+    init(_ objName: String, phoneNumber: String) {
+        super.init()
+        self.nameOfObj = objName
+        self.phoneNumber = phoneNumber
+    }
 }
 
 
