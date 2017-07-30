@@ -10,35 +10,72 @@ import UIKit
 import Firebase
 import FirebaseDatabase
 import CoreLocation
+import MapKit
 
-class ViewController: UIViewController {
+
+class ViewController: UIViewController  {
 
     //map
-    var myPins = [CLLocation]()
-    var userID = "jdinlkj392djf"
+    var regPins = [CLLocation]()
+    var bountyPins = [CLLocation]()
+    
+    fileprivate let locationManager = CLLocationManager()
+
+
+
+    //user
+    var userID: String!
 
     //firebase
     var ref: DatabaseReference!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.userID = "jdinlkj392djf"
 
         //firebase
         ref = Database.database().reference()
-        ref.child("Users").child(userID).child("GeoLocations").childByAutoId().setValue("d")
-
     }
 
-    func setPinToLocation(location: CLLocation){
-        var locationX = 1
-        var locationY = 1
-        ref.child("Users").child(userID).child("GeoLocations").childByAutoId()//.child("positionX").setValue(locationX)
-        ref.child("Users").child(userID).child("GeoLocations").childByAutoId()//.child("positionY").setValue(locationX)
+    func setPinToLocation(location: CLLocation, itemName: String){
+        var latitude = location.coordinate.latitude
+        var longitude = location.coordinate.longitude
+
+        var type = "Regular"
+        var uid = ref.childByAutoId().key
+        ref.child("Users").child(userID).child("GeoLocations").child(uid).child("latitude").setValue(latitude)
+        ref.child("Users").child(userID).child("GeoLocations").child(uid).child("longitude").setValue(longitude)
+        ref.child("Users").child(userID).child("GeoLocations").child(uid).child("type").setValue(type)
+        ref.child("Users").child(userID).child("GeoLocations").child(uid).child("itemName").setValue(itemName)
+        //ref.child("Users").child(userID).child("GeoLocations").child(uid).child("itemDescription").setValue(type)
 
     }
 
     func getMyPins(){
 
+        ref.child("Users").child(userID).child("GeoLocations").observeSingleEvent(of: .value, with: { (snapshot) in
+            // Get user value
+            self.regPins = []
+            self.regPins = snapshot.children.map{ childObj in
+                let child = childObj as! DataSnapshot
+                let latitude = child.childSnapshot(forPath: "latitude").value as! Double
+                let longitude = child.childSnapshot(forPath: "longitude").value as! Double
+                let type = child.childSnapshot(forPath: "type").value as! String
+
+                if(type == "Regular"){
+                    return CLLocation(latitude: latitude, longitude: longitude)
+                }
+                else{
+                    return CLLocation(latitude: latitude, longitude: longitude)
+                }
+
+            }
+            print(self.regPins)
+
+
+        }) { (error) in
+            print(error.localizedDescription)
+        }
     }
 
     func getNearbyBounties(){
@@ -49,21 +86,5 @@ class ViewController: UIViewController {
         super.didReceiveMemoryWarning()
 
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
