@@ -48,6 +48,26 @@ extension UIView {
 
 }
 
+@IBDesignable class BountyPopup : UIView
+{
+    var parentViewController: ViewController?
+    @IBAction func segueToDirections(_ sender: Any) {
+    }
+    
+    @IBAction func BountyScreen(_ sender: Any) {
+        
+    }
+    
+    @IBAction func deletePressed(_ sender: Any) {
+      
+    }
+    
+    class func instanceFromNib() -> UIView {
+        return UINib(nibName: "BountyPopup", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! UIView
+    }
+    
+}
+
 class MapPoint {
     var location: CLLocation!
     var id: String!
@@ -160,7 +180,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 if let boody = msg.body["messages"] as? [Any], let bdy = boody[0] as? [AnyHashable: AnyObject] {
                     if let lat = bdy["latitude"] as? Double {
                         if let long = bdy["longitude"] as? Double {
-                            let annotation = BountyAnnotation()
+                            let annotation = BountyAnnotation(objName: bdy["name"] as! String, phoneNumber: bdy["phone"] as! String)
                             annotation.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
                             self.mapView.addAnnotation(annotation)
                             print("RECEIVED SATORI")
@@ -362,7 +382,12 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     //MARK: MKMapViewDelegate
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        print(view.annotation as Any)
+        if let ann = view.annotation as? BountyAnnotation {
+            let view: BountyPopup = BountyPopup.instanceFromNib() as! BountyPopup
+            view.parentViewController = self
+            popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
+            popup.show()
+        }
         if let ann = view.annotation as? MyAnnotation {
             self.currLoc = ann
             self.selectedID = ann.id
