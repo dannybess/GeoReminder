@@ -135,7 +135,7 @@
         <!--Navigate View Controller-->
         <scene sceneID="Ryr-jf-VTo">
             <objects>
-                <viewController id="TWA-GH-Ppa" customClass="NavigateViewController" customModule="GeoReminder" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="nav" useStoryboardIdentifierAsRestorationIdentifier="YES" id="TWA-GH-Ppa" customClass="NavigateViewController" customModule="GeoReminder" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="kG4-sB-VP1"/>
                         <viewControllerLayoutGuide type="bottom" id="OmF-hu-Snt"/>

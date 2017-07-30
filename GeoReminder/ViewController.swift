@@ -28,10 +28,12 @@ extension UIView {
 {
     var parentViewController: ViewController?
     @IBAction func segueToDirections(_ sender: Any) {
+        let nvc = self.parentViewController!.storyboard?.instantiateViewController(withIdentifier: "nav") as! NavigateViewController
+        nvc.itemAnnotation = parentViewController!.currLoc
+        self.parentViewController!.navigationController?.pushViewController(nvc, animated: true)
     }
     @IBAction func BountyScreen(_ sender: Any) {
         parentViewController!.segueToBounty()
-        print("hereboi")
     }
 
     @IBAction func deletePressed(_ sender: Any) {
@@ -358,7 +360,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     //MARK: MKMapViewDelegate
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
-        print(view.annotation)
+        print(view.annotation as Any)
         if let ann = view.annotation as? MyAnnotation {
             self.currLoc = ann
             self.selectedID = ann.id
@@ -533,10 +535,13 @@ extension UIView {
 }
 
 class BountyAnnotation: MKPointAnnotation {
-    var nameOfObj : String
-    var phoneNumber : String
+    var nameOfObj : String?
+    var phoneNumber : String?
 
-    init(_ objName: String, phoneNumber: String) {
+    override init() {
+        super.init()
+    }
+    init(objName: String, phoneNumber: String) {
         super.init()
         self.nameOfObj = objName
         self.phoneNumber = phoneNumber
