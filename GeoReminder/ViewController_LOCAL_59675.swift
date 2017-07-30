@@ -110,8 +110,6 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     var adjustNorthByTappingSidesOfScreen = false
     
-    var geoFenceTimer : Timer!
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.ref = Database.database().reference()
@@ -165,7 +163,6 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 }
             }
         }
-        geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
         self.mapView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(ViewController.addAnn(_:))))
     }
 
@@ -194,7 +191,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
 
     func deletePin(){
         self.mapView.removeAnnotation(self.currLoc)
-        ref.child("Users").child(userID).child("GeoLocations").child(selectedID).removeValue()
+        ref.child("Users/\(userID)/GeoLocations/\(selectedID)").removeValue()
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -282,7 +279,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                     if bestLocationEstimate != nil {
                         if self.locationEstimateAnnotation == nil {
                             self.locationEstimateAnnotation = MKPointAnnotation()
-                        self.mapView.addAnnotation(self.locationEstimateAnnotation!)
+                            self.mapView.addAnnotation(self.locationEstimateAnnotation!)
                         }
                         
                         self.locationEstimateAnnotation!.coordinate = bestLocationEstimate!.location.coordinate
@@ -342,9 +339,10 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         let annotationNode = LocationAnnotationNode(location: nil, image: image)
                         annotationNode.scaleRelativeToDistance = true
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
+                        let ann = MKPointAnnotation()
+                        ann.coordinate = annotationNode.location.coordinate
                         let key = ref.childByAutoId().key
-                        let ann = MyAnnotation(loc: CLLocation(coordinate: annotationNode.location.coordinate, altitude: 0.0), pinID: key)
-                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(10.0, annotationNode.location.altitude))
+                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(5.0, annotationNode.location.altitude))
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
                         self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)", id: key)
@@ -396,38 +394,6 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         return nil
     }
     
-    func iterateThroughAnn() {
-        for annotation in self.mapView.annotations {
-            if(!(annotation is MKUserLocation)) {
-                if let ann = annotation as? MyAnnotation {
-                    if(userDistance(from: (ann))! > 15.0) {
-                        if(geoFenceTimer != nil) {
-                            self.geoFenceTimer.invalidate()
-                            self.geoFenceTimer = nil
-                        }
-                        let id = ((annotation as! MyAnnotation).id)
-                        let alertController = UIAlertController(title: "Don't forget Your Item!", message: "Your geo-pin, \(id!), is still on the map!", preferredStyle: .alert)
-                        let action = UIAlertAction(title: "OK", style: .default, handler: {
-                            action in
-                            self.geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
-                        })
-                    }
-                }
-            }
-        }
-    }
-    
-    func userDistance(from point: MyAnnotation) -> Double? {
-        guard let userLocation = self.mapView.userLocation.location else {
-            return nil // User location unknown!
-        }
-        let pointLocation = CLLocation(
-            latitude:  point.coordinate.latitude,
-            longitude: point.coordinate.longitude
-        )
-        return userLocation.distance(from: pointLocation)
-    }
-    
     //MARK: SceneLocationViewDelegate
     
     func sceneLocationViewDidAddSceneLocationEstimate(sceneLocationView: SceneLocationView, position: SCNVector3, location: CLLocation) {
@@ -464,11 +430,11 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 
                 if(type == "Regular"){
 
-                    let location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    var location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
                     return MapPoint(loc: location, pinID: uid)
                 }
                 else{
-                    let location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    var location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
                     return MapPoint(loc: location, pinID: uid)
                 }
                 

@@ -10,10 +10,15 @@ import UIKit
 
 
 
+<<<<<<< HEAD
 class BountyView: UIViewController, UITextFieldDelegate {
 
 
 
+=======
+class BountyView: UIViewController {
+    
+>>>>>>> 4645980af13ac4f71d6f44b2c8f44a6e6b4a7d33
     var id: String!
     var loc: MyAnnotation!
     @IBOutlet weak var nameField: UITextField!
@@ -21,8 +26,15 @@ class BountyView: UIViewController, UITextFieldDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+<<<<<<< HEAD
+        
+        
         phoneField.keyboardType = UIKeyboardType.numberPad
+
+
+=======
+>>>>>>> 4645980af13ac4f71d6f44b2c8f44a6e6b4a7d33
+        // Do any additional setup after loading the view.
     }
 
     override func didReceiveMemoryWarning() {
