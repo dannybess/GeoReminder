@@ -252,7 +252,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
                         let ann = MKPointAnnotation()
                         ann.coordinate = annotationNode.location.coordinate
-                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: max(5.0, annotationNode.location.altitude))
+                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(5.0, annotationNode.location.altitude))
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
                         self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)")
