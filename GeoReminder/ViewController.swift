@@ -14,6 +14,7 @@ import MapKit
 import SceneKit
 import KLCPopup
 import SceneKit 
+import MessageUI
 
 extension UIView {
     class func loadFromNibNamed(nibNamed: String, bundle : Bundle? = nil) -> UIView? {
@@ -48,14 +49,19 @@ extension UIView {
 
 }
 
-@IBDesignable class BountyPopup : UIView
+@IBDesignable class BountyPopup : UIView, MFMessageComposeViewControllerDelegate
 {
     var parentViewController: ViewController?
     @IBAction func segueToDirections(_ sender: Any) {
     }
     
     @IBAction func BountyScreen(_ sender: Any) {
-        
+        let composeVC = MFMessageComposeViewController()
+        composeVC.messageComposeDelegate = self
+        // Configure the fields of the interface.
+        composeVC.recipients = [parentViewController!.lastBountyPin.phoneNumber!]
+        // Present the view controller modally.
+        self.parentViewController!.navigationController?.pushViewController(composeVC, animated: true)
     }
     
     @IBAction func deletePressed(_ sender: Any) {
@@ -65,7 +71,13 @@ extension UIView {
     class func instanceFromNib() -> UIView {
         return UINib(nibName: "BountyPopup", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! UIView
     }
-    
+    func messageComposeViewController(_ controller: MFMessageComposeViewController,
+                                      didFinishWith result: MessageComposeResult) {
+        // Check the result or perform other tasks.
+
+        // Dismiss the message compose view controller.
+        controller.dismiss(animated: true, completion: nil)
+    }
 }
 
 class MapPoint {
@@ -107,7 +119,8 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     //firebase
     var ref: DatabaseReference!
-    
+
+    var lastBountyPin: BountyAnnotation!
     let sceneLocationView = SceneLocationView()
     
     let mapView = MKMapView()
@@ -144,7 +157,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         infoLabel.textColor = UIColor.white
         infoLabel.numberOfLines = 0
         sceneLocationView.addSubview(infoLabel)
-
+        self.setNeedsStatusBarAppearanceUpdate()
         self.mapView.showsUserLocation = true
 
         // updateInfoLabelTimer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(ViewController.updateInfoLabel), userInfo: nil, repeats: true)
@@ -225,6 +238,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let dest = segue.destination as? BountyView {
             dest.loc = self.currLoc
+            dest.id = selectedID
             KLCPopup.dismissAllPopups()
         }
         
@@ -353,9 +367,9 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 if (mapView == touch.view! ||
                     mapView.recursiveSubviews().contains(touch.view!)) {
                     centerMapOnUserLocation = false
-                } else {
+                } else if sceneLocationView == touch.view! {
                     
-                    let location = touch.location(in: self.view)
+                    let location = touch.location(in: self.sceneLocationView)
                     
                     if location.x <= 40 && adjustNorthByTappingSidesOfScreen {
                         print("left side of the screen")
@@ -379,6 +393,10 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             }
         }
     }
+
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
     
     //MARK: MKMapViewDelegate
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
@@ -391,12 +409,12 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         if let ann = view.annotation as? MyAnnotation {
             self.currLoc = ann
             self.selectedID = ann.id
-
             let view: MultSelectView = MultSelectView.instanceFromNib() as! MultSelectView
             view.parentViewController = self
             popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
             popup.show()
         }
+        mapView.deselectAnnotation(view.annotation, animated: false)
     }
 
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

@@ -7,6 +7,9 @@
 //
 
 import UIKit
+import Firebase
+import FirebaseDatabase
+
 
 
 
@@ -18,6 +21,7 @@ class BountyView: UIViewController, UITextFieldDelegate {
     var loc: MyAnnotation!
     @IBOutlet weak var nameField: UITextField!
     @IBOutlet weak var phoneField: UITextField!
+    var ref: DatabaseReference!
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,7 +35,7 @@ class BountyView: UIViewController, UITextFieldDelegate {
     }
     
     @IBAction func confirmClicked(_ sender: Any) {
-        
+       // ref.child("Users").child("jdinlkj392djf").child("GeoLocations").child(id).removeValue()
         SatoriWrapper.shared().publishLocation(["latitude": self.loc.coordinate.latitude, "longitude": self.loc.coordinate.longitude, "name": nameField.text!, "phone": phoneField.text!])
         self.navigationController?.popViewController(animated: true)
     }

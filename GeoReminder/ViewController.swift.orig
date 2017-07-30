@@ -28,10 +28,12 @@ extension UIView {
 {
     var parentViewController: ViewController?
     @IBAction func segueToDirections(_ sender: Any) {
+        let nvc = self.parentViewController!.storyboard?.instantiateViewController(withIdentifier: "nav") as! NavigateViewController
+        nvc.itemAnnotation = parentViewController!.currLoc
+        self.parentViewController!.navigationController?.pushViewController(nvc, animated: true)
     }
     @IBAction func BountyScreen(_ sender: Any) {
         parentViewController!.segueToBounty()
-        print("hereboi")
     }
 
     @IBAction func deletePressed(_ sender: Any) {
@@ -44,6 +46,26 @@ extension UIView {
         return UINib(nibName: "MultSelectView", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! UIView
     }
 
+}
+
+@IBDesignable class BountyPopup : UIView
+{
+    var parentViewController: ViewController?
+    @IBAction func segueToDirections(_ sender: Any) {
+    }
+    
+    @IBAction func BountyScreen(_ sender: Any) {
+        
+    }
+    
+    @IBAction func deletePressed(_ sender: Any) {
+      
+    }
+    
+    class func instanceFromNib() -> UIView {
+        return UINib(nibName: "BountyPopup", bundle: nil).instantiate(withOwner: nil, options: nil)[0] as! UIView
+    }
+    
 }
 
 class MapPoint {
@@ -78,6 +100,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     //klc popup
     var popup : KLCPopup!
 
+    var usedValues : [String] = []
 
     //user
     var userID: String = "jdinlkj392djf"
@@ -112,8 +135,11 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     
     var geoFenceTimer : Timer!
     
+    var usedValues : [String] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationController?.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
         self.ref = Database.database().reference()
         infoLabel.font = UIFont.systemFont(ofSize: 10)
         infoLabel.textAlignment = .left
@@ -156,7 +182,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 if let boody = msg.body["messages"] as? [Any], let bdy = boody[0] as? [AnyHashable: AnyObject] {
                     if let lat = bdy["latitude"] as? Double {
                         if let long = bdy["longitude"] as? Double {
-                            let annotation = BountyAnnotation()
+                            let annotation = BountyAnnotation(objName: bdy["name"] as! String, phoneNumber: bdy["phone"] as! String)
                             annotation.coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
                             self.mapView.addAnnotation(annotation)
                             print("RECEIVED SATORI")
@@ -165,7 +191,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 }
             }
         }
-<<<<<<< HEAD
+        geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
         self.mapView.addGestureRecognizer(UILongPressGestureRecognizer(target: self, action: #selector(ViewController.addAnn(_:))))
     }
 
@@ -175,9 +201,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         let annotation = MyAnnotation(loc: CLLocation(coordinate: newCoordinates, altitude: 0.0), pinID: self.ref.childByAutoId().key)
         self.setPinToLocation(location: CLLocation(coordinate: annotation.coordinate, altitude: 0.0), itemName: "Pin_\(annotation.id)", id: annotation.id)
         self.mapView.addAnnotation(annotation)
-=======
-        geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
->>>>>>> 4645980af13ac4f71d6f44b2c8f44a6e6b4a7d33
+        self.sceneLocationView.addLocationNodeWithConfirmedLocation(locationNode: LocationNode(location: CLLocation(coordinate: annotation.coordinate, altitude: 0.0)))
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -197,7 +221,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
 
     func deletePin(){
         self.mapView.removeAnnotation(self.currLoc)
-        ref.child("Users/\(userID)/GeoLocations/\(selectedID)").removeValue()
+        ref.child("Users").child(userID).child("GeoLocations").child(selectedID).removeValue()
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -205,6 +229,7 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
             dest.loc = self.currLoc
             KLCPopup.dismissAllPopups()
         }
+        
     }
 
     
@@ -345,17 +370,12 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                         let annotationNode = LocationAnnotationNode(location: nil, image: image)
                         annotationNode.scaleRelativeToDistance = true
                         sceneLocationView.addLocationNodeForCurrentPosition(locationNode: annotationNode)
-                        let ann = MKPointAnnotation()
-                        ann.coordinate = annotationNode.location.coordinate
                         let key = ref.childByAutoId().key
-                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: min(5.0, annotationNode.location.altitude))
+                        let ann = MyAnnotation(loc: CLLocation(coordinate: annotationNode.location.coordinate, altitude: 0.0), pinID: key)
+                        let cloc = CLLocation(coordinate: annotationNode.location.coordinate, altitude: annotationNode.location.altitude)
                         self.mapView.addAnnotation(ann)
                         let randN = arc4random_uniform(101)
-<<<<<<< HEAD
                         self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)", id: key)
-=======
-                        self.setPinToLocation(location: cloc, itemName: "Pin_\(randN)", id: "\(randN)")
->>>>>>> 4645980af13ac4f71d6f44b2c8f44a6e6b4a7d33
                     }
                 }
             }
@@ -365,17 +385,19 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
     //MARK: MKMapViewDelegate
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
 <<<<<<< HEAD
-        print(view.annotation)
+        print(view.annotation as Any)
+=======
+        if let ann = view.annotation as? BountyAnnotation {
+            let view: BountyPopup = BountyPopup.instanceFromNib() as! BountyPopup
+            view.parentViewController = self
+            popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
+            popup.show()
+        }
+>>>>>>> 2e2bcd58531ec4f843ff819de6b2672c4a3ddf8b
         if let ann = view.annotation as? MyAnnotation {
             self.currLoc = ann
             self.selectedID = ann.id
 
-=======
-        if(!(view.annotation is MKUserLocation)) {
-            print(view.annotation)
-            var ann = view.annotation as! MyAnnotation
-            print(ann.id)
->>>>>>> 4645980af13ac4f71d6f44b2c8f44a6e6b4a7d33
             let view: MultSelectView = MultSelectView.instanceFromNib() as! MultSelectView
             view.parentViewController = self
             popup = KLCPopup(contentView: view, showType: KLCPopupShowType.bounceIn, dismissType: KLCPopupDismissType.fadeOut, maskType: KLCPopupMaskType.dimmed, dismissOnBackgroundTouch: true, dismissOnContentTouch: false)
@@ -415,17 +437,23 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
         for annotation in self.mapView.annotations {
             if(!(annotation is MKUserLocation)) {
                 if let ann = annotation as? MyAnnotation {
-                    if(userDistance(from: (ann))! > 15.0) {
+                    print(userDistance(from: (ann))!)
+                    if(userDistance(from: (ann))! > 3.0) {
                         if(geoFenceTimer != nil) {
                             self.geoFenceTimer.invalidate()
                             self.geoFenceTimer = nil
                         }
                         let id = ((annotation as! MyAnnotation).id)
-                        let alertController = UIAlertController(title: "Don't forget Your Item!", message: "Your geo-pin, \(id!), is still on the map!", preferredStyle: .alert)
-                        let action = UIAlertAction(title: "OK", style: .default, handler: {
-                            action in
-                            self.geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
-                        })
+                        if(!(usedValues.contains(id!))) {
+                            let alertController = UIAlertController(title: "Don't forget Your Item!", message: "Your geo-pin, \(id!), is still on the map!", preferredStyle: .alert)
+                            let action = UIAlertAction(title: "OK", style: .default, handler: {
+                                action in
+                                self.geoFenceTimer = Timer.scheduledTimer(timeInterval: 2.0, target: self, selector: #selector(ViewController.iterateThroughAnn), userInfo: nil, repeats: true)
+                            })
+                            alertController.addAction(action)
+                            self.present(alertController, animated: true, completion: nil)
+                            usedValues.append(id!)
+                        }
                     }
                 }
             }
@@ -479,11 +507,11 @@ class ViewController: UIViewController, MKMapViewDelegate, SceneLocationViewDele
                 
                 if(type == "Regular"){
 
-                    var location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    let location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
                     return MapPoint(loc: location, pinID: uid)
                 }
                 else{
-                    var location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
+                    let location =  CLLocation(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), altitude: altitude)
                     return MapPoint(loc: location, pinID: uid)
                 }
                 
@@ -543,6 +571,20 @@ extension UIView {
 }
 
 class BountyAnnotation: MKPointAnnotation {
+    var nameOfObj : String?
+    var phoneNumber : String?
+
+<<<<<<< HEAD
+    override init() {
+        super.init()
+    }
+=======
+>>>>>>> 2e2bcd58531ec4f843ff819de6b2672c4a3ddf8b
+    init(objName: String, phoneNumber: String) {
+        super.init()
+        self.nameOfObj = objName
+        self.phoneNumber = phoneNumber
+    }
 }
 
 
