@@ -11,8 +11,7 @@
         <!--View Controller-->
         <scene sceneID="bTO-BG-9VJ">
             <objects>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="6qJ-Ma-M6O" sceneMemberID="firstResponder"/>
-                <viewController id="610-d0-rng" customClass="ViewController" customModule="Places" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="610-d0-rng" customClass="ViewController" customModule="GeoReminder" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="kWw-F1-Izb"/>
                         <viewControllerLayoutGuide type="bottom" id="bM0-jn-kBD"/>
@@ -20,23 +19,10 @@
                     <view key="view" contentMode="scaleToFill" id="ILs-lp-glX">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" showsUserLocation="YES" showsPointsOfInterest="NO" translatesAutoresizingMaskIntoConstraints="NO" id="v9Y-ZG-wjH">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
-                            </mapView>
-                        </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                        <constraints>
-                            <constraint firstItem="bM0-jn-kBD" firstAttribute="top" secondItem="v9Y-ZG-wjH" secondAttribute="bottom" id="f3c-HL-x4H"/>
-                            <constraint firstAttribute="trailing" secondItem="v9Y-ZG-wjH" secondAttribute="trailing" id="nh7-Ge-upq"/>
-                            <constraint firstItem="v9Y-ZG-wjH" firstAttribute="top" secondItem="ILs-lp-glX" secondAttribute="top" id="pZV-W5-Ogo"/>
-                            <constraint firstItem="v9Y-ZG-wjH" firstAttribute="leading" secondItem="ILs-lp-glX" secondAttribute="leading" id="yh5-La-alo"/>
-                        </constraints>
                     </view>
-                    <connections>
-                        <outlet property="mapView" destination="v9Y-ZG-wjH" id="EWb-xe-7FG"/>
-                    </connections>
                 </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="6qJ-Ma-M6O" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="29.600000000000001" y="83.208395802098963"/>
         </scene>
