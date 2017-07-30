@@ -7,9 +7,15 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+#import <SatoriRtmSdkWrapper/SatoriRtmSdkWrapper.h>
 
 @interface SatoriWrapper : NSObject
+@property (nonatomic, retain) NSArray *geopins;
+@property (nonatomic, retain) SatoriRtmConnection *rtm;
 
-+ (void)testMethod;
+- (void)satoriInit;
+- (void) publishLocation: (NSDictionary *)location;
++ (SatoriWrapper *)shared;
 
 @end

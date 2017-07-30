@@ -25,8 +25,8 @@ class ViewController: UIViewController {
 
         //firebase
         ref = Database.database().reference()
-        ref.child("Users").child(userID).child("GeoLocations").childByAutoId().setValue("d")
-
+        SatoriWrapper.shared().satoriInit()
+        SatoriWrapper.shared().publishLocation(["name": "dhruv", "lat": 18293.89879, "long": -1379.2882])
     }
 
     func setPinToLocation(location: CLLocation){
