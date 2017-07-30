@@ -31,6 +31,9 @@ class BountyView: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    @IBAction func confirmClicked(_ sender: Any) {
+        
+    }
 
     /*
     // MARK: - Navigation
